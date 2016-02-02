@@ -1,0 +1,156 @@
+// $Id: $
+//
+// Author: Francisco Sans franjaviersans@gmail.com
+//
+// Complete history on bottom of file
+
+#define FILE_REVISION "$Revision: $"
+
+#include "CubeIntersection.h"
+#include "TextureManager.h"
+#include <stdlib.h>
+#include <iostream>
+
+
+
+/**
+* Default constructor
+*/
+CCubeIntersection::CCubeIntersection(bool front, GLuint W, GLuint H) :m_bFront(front), m_uiWidth(W), m_uiHeight(H)
+{
+	//load the shaders
+	try{
+		m_program.compileShader("shaders/hit.vert", GLSLShader::VERTEX);
+		m_program.compileShader("shaders/hit.frag", GLSLShader::FRAGMENT);
+		m_program.link();
+	}
+	catch (GLSLProgramException & e) {
+		std::cerr << e.what() << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	m_iFrameBuffer = -1;
+	depthrenderbuffer = -1;
+
+	SetResolution(W,H);
+};
+
+/**
+* Default destructor
+*/
+CCubeIntersection::~CCubeIntersection()
+{
+	glDeleteFramebuffers(1,&m_iFrameBuffer);
+	glDeleteFramebuffers(1,&depthrenderbuffer);
+}
+
+/**
+* Set resolution
+*
+* @params ResW new window width resolution
+* @params ResH new window hegith resolution
+*
+*/
+void CCubeIntersection::SetResolution(GLuint ResW, GLuint ResH)
+{
+	m_uiWidth = ResW;
+	m_uiHeight = ResH;
+
+	//If it exists, unload
+	TextureManager::Inst()->UnloadTexture((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT);
+
+	//Create texture!!
+	glActiveTexture(GL_TEXTURE0);
+
+	//Create new empty textures
+	TextureManager::Inst()->CreateTexture2D((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT, m_uiWidth, m_uiHeight, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_NEAREST, GL_NEAREST);
+
+
+	//Generate Render Buffer
+	if(m_iFrameBuffer == -1)
+	{
+		glGenFramebuffers(1, &m_iFrameBuffer);
+	}
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, m_iFrameBuffer);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TextureManager::Inst()->GetID((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT), 0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	// The depth buffer
+	if(depthrenderbuffer == -1)
+	{
+		glGenRenderbuffers(1, &depthrenderbuffer);
+	}
+	
+	glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, m_uiWidth, m_uiHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
+/**
+* Method to Draw the Quad
+*/
+void CCubeIntersection::Draw(glm::mat4 &m_mMVP)
+{
+
+	//Bind the FrameBuffer to draw
+	glBindFramebuffer(GL_FRAMEBUFFER, m_iFrameBuffer);
+
+	//Draw in all the screen
+	glViewport(0, 0, m_uiWidth, m_uiHeight);
+
+	//Set which face to draw
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glFrontFace(GL_CCW);
+
+	if (m_bFront)glCullFace(GL_BACK);
+	else		glCullFace(GL_FRONT);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	//Draw a Cube
+	m_program.use();
+	{
+		m_program.setUniform("mMVP", m_mMVP);
+		FBOCube::Instance()->Draw();
+	}
+
+
+	//Reset culling
+	glCullFace(GL_BACK);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+
+/**
+* Function to use the texture
+*/
+void CCubeIntersection::Use(GLenum activeTexture)
+{
+	glActiveTexture(activeTexture);
+	TextureManager::Inst()->BindTexture((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT);
+}
+
+
+/**
+* Debug Texture
+*/
+void CCubeIntersection::Debug()
+{
+	
+}
+
+#undef FILE_REVISION
+
+// Revision History:
+// $Log: $
+// $Header: $
+// $Id: $
