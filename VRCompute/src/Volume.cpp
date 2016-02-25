@@ -50,7 +50,7 @@ void Volume::Load(string filename, GLuint width, GLuint height, GLuint depth)
 	length = int(textureFile.tellg());
 
 	if (length != width * height * depth){
-		cout << "Bad volume size or rong file!" << endl;
+		cout << "Bad volume size or wrong file!" << endl;
 		exit(0);
 	}
 
