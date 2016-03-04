@@ -21,7 +21,6 @@
 #pragma comment (lib,"./lib/glfw3dll.lib")	
 #pragma comment (lib,"./lib/glew32.lib")
 #pragma comment (lib, "opengl32.lib")
-#pragma comment (lib,"./lib/AntTweakBar.lib")
 #pragma comment (lib,"./lib/FreeImage.lib")
 
 
@@ -29,7 +28,6 @@
 #include "../include/GL/glew.h"
 #define GLFW_DLL
 #include "../include/GLFW/glfw3.h"
-#include "../include/AntTweakBar/AntTweakBar.h"
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "../include/glm/gtc/type_ptr.hpp"
