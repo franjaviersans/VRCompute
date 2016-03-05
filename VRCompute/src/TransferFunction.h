@@ -36,8 +36,8 @@
 
 struct specialPoint
 {
-	
-	
+
+
 	glm::ivec2 point;
 	glm::ivec2 pickerPos;
 	int selectedColorPos;
@@ -46,10 +46,10 @@ struct specialPoint
 	glm::vec4 color;
 
 	specialPoint(){}
-	specialPoint(const glm::ivec2 &point, const glm::vec4 &color, const glm::ivec2 &pickerPos, 
-					const int &selectedColorPos, const bool &drag, const bool &selected) :
-					point(point), color(color), pickerPos(pickerPos), 
-					selectedColorPos(selectedColorPos), drag(drag), selected(selected){}
+	specialPoint(const glm::ivec2 &point, const glm::vec4 &color, const glm::ivec2 &pickerPos,
+		const int &selectedColorPos, const bool &drag, const bool &selected) :
+		point(point), color(color), pickerPos(pickerPos),
+		selectedColorPos(selectedColorPos), drag(drag), selected(selected){}
 };
 
 class TransferFunction
@@ -57,28 +57,28 @@ class TransferFunction
 private:
 	float alpha;
 	GLFWwindow *window;
-	int *windowsW, *windowsH;							
-	int imageW, imageH, ptsCounter;						
-	int lastPicking, posx , posy, antx, anty, realposx, realposy;
-	int pointSelected, indicatorSC;									
-	bool palleteCreated, dragDropWindow, corner;		
+	int *windowsW, *windowsH;
+	int imageW, imageH, ptsCounter;
+	int lastPicking, posx, posy, antx, anty, realposx, realposy;
+	int pointSelected, indicatorSC;
+	bool palleteCreated, dragDropWindow, corner;
 
-	int colorPosList[ MAXPOINT ];	
-	glm::vec4 currentColor;	
-	glm::vec4 colorList[ MAXPOINT ];	
-	glm::vec4 baseColors[ 6 ];	
-	glm::ivec2 currentColorPickerPos;					
-	glm::ivec2 pointList[ MAXPOINT ];	
-	glm::ivec2 colorPickerPosList[ MAXPOINT ];
+	int colorPosList[MAXPOINT];
+	glm::vec4 currentColor;
+	glm::vec4 colorList[MAXPOINT];
+	glm::vec4 baseColors[6];
+	glm::ivec2 currentColorPickerPos;
+	glm::ivec2 pointList[MAXPOINT];
+	glm::ivec2 colorPickerPosList[MAXPOINT];
 	glm::mat4x4 mProjMatrix, mModelViewMatrix;
 
 	//Shaders programs
 	GLSLProgram m_program;
-				
-	bool Picking( int x, int y);
-	void SortPoints( int jumpPoint = -1 );
+
+	bool Picking(int x, int y);
+	void SortPoints(int jumpPoint = -1);
 	void UpdateColorPoint();
-	bool DeletePoint( int w, int h );
+	bool DeletePoint(int w, int h);
 
 public:
 	TransferFunction(void);
@@ -86,12 +86,12 @@ public:
 
 	GLuint pallete, indextemppallete;
 	GLfloat colorPalette[256][4];
-	bool updateTexture, dragDrop, dragDropColor, dragDropPicker, isVisible;		
+	bool updateTexture, dragDrop, dragDropColor, dragDropPicker, isVisible;
 
 	void Display();
-	void InitContext( GLFWwindow *window, int *windowsW, int *windowsH, int posx = -1, int posy = -1);
-	bool MouseButton( int w, int h, int button, int action );
-	bool CursorPos ( int w, int h );
+	void InitContext(GLFWwindow *window, int *windowsW, int *windowsH, const char * file = NULL, int posx = -1, int posy = -1);
+	bool MouseButton(int w, int h, int button, int action);
+	bool CursorPos(int w, int h);
 	void Resize(int *windowsW, int *windowsH);
 	void UpdatePallete();
 	void Use(GLenum activeTexture);
