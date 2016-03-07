@@ -8,6 +8,7 @@
 #include "Volume.h"
 #include "FinalImage.h"
 #include <iostream>
+#include <sstream>
 
 using std::cout;
 using std::endl;
@@ -31,6 +32,7 @@ namespace glfwFunc
 	char * volume_filepath = "./Raw/volume.raw";
 	char * transfer_func_filepath = NULL;
 	glm::ivec3 vol_size = glm::ivec3(256, 256, 256);
+	glm::ivec2 working_group = glm::ivec2(8, 8);
 
 	float color[]={1,1,1};
 	bool pintar = false;
@@ -46,7 +48,9 @@ namespace glfwFunc
 	double lastx, lasty;
 	bool pres = false;
 
+#ifdef NOT_RAY_BOX
 	CCubeIntersection *m_BackInter, *m_FrontInter;
+#endif
 	CFinalImage *m_FinalImage;
 
 
@@ -155,15 +159,13 @@ namespace glfwFunc
 		mProjMatrix = glm::perspective(float(fAngle), ratio, NCP, FCP);
 	//	mProjMatrix = glm::ortho(-1.0f,1.0f,-1.0f,1.0f,-1.0f,5.0f);
 
-		m_computeProgram.use();
-		{
-			m_computeProgram.setUniform("mProjection", mProjMatrix);
-		}
 
 
 		// Update size in some buffers!!!
+#ifdef NOT_RAY_BOX
 		m_BackInter->SetResolution(iWidth, iHeight);
 		m_FrontInter->SetResolution(iWidth, iHeight);
+#endif
 		m_FinalImage->SetResolution(iWidth, iHeight);
 		g_pTransferFunc->Resize(&WINDOW_WIDTH, &WINDOW_HEIGHT);
 
@@ -171,10 +173,17 @@ namespace glfwFunc
 		{
 			//Bind the texture
 			glBindImageTexture(0, TextureManager::Inst()->GetID(TEXTURE_FINAL_IMAGE), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-			glBindImageTexture(1, TextureManager::Inst()->GetID(TEXTURE_BACK_HIT), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
-			glBindImageTexture(2, TextureManager::Inst()->GetID(TEXTURE_FRONT_HIT), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
-			glBindImageTexture(3, TextureManager::Inst()->GetID(TEXTURE_TRANSFER_FUNC), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
-			glBindImageTexture(4, TextureManager::Inst()->GetID(TEXTURE_VOLUME), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+			glBindImageTexture(1, TextureManager::Inst()->GetID(TEXTURE_TRANSFER_FUNC), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+			glBindImageTexture(2, TextureManager::Inst()->GetID(TEXTURE_VOLUME), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+#ifdef NOT_RAY_BOX
+			glBindImageTexture(3, TextureManager::Inst()->GetID(TEXTURE_BACK_HIT), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
+			glBindImageTexture(4, TextureManager::Inst()->GetID(TEXTURE_FRONT_HIT), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
+#else
+			m_computeProgram.setUniform("constantWidth", WINDOW_WIDTH);
+			m_computeProgram.setUniform("constantHeight", WINDOW_HEIGHT);
+			m_computeProgram.setUniform("constantAngle", fAngle);
+			m_computeProgram.setUniform("constantNCP", NCP);
+#endif
 		}
 		
 	}
@@ -197,16 +206,25 @@ namespace glfwFunc
 
 		mMVP = mProjMatrix * mModelViewMatrix;
 
+
+
 		//Obtain Back hits
+#ifdef NOT_RAY_BOX
 		m_BackInter->Draw(mMVP);
 		//Obtain the front hits
 		m_FrontInter->Draw(mMVP);
+#endif
 
 		//Draw a Cube
 		m_computeProgram.use();
-		{					
+		{	
+
+#ifndef NOT_RAY_BOX
+			m_computeProgram.setUniform("c_invViewMatrix", glm::inverse(mModelViewMatrix));
+#endif
+
 			//Do calculation with Compute Shader
-			glDispatchCompute((WINDOW_WIDTH + 8) / 8, (WINDOW_HEIGHT + 8) / 8, 1);
+			glDispatchCompute((WINDOW_WIDTH + working_group.x) / working_group.x, (WINDOW_HEIGHT + working_group.y) / working_group.y, 1);
 
 			//Wait for memory writes
 			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -299,7 +317,14 @@ namespace glfwFunc
 
 		//Set compute shader
 		try{
-			m_computeProgram.compileShader("./shaders/compute.cs", GLSLShader::COMPUTE);
+			std::ostringstream oss;
+			oss << "#version 450 core \n layout(local_size_x = " << working_group.x << ", local_size_y = " << working_group.y<<", local_size_z = 1) in; \n";
+			std::string header = oss.str();
+#ifdef NOT_RAY_BOX
+			m_computeProgram.compileShader("./shaders/compute.cs", GLSLShader::COMPUTE, header);
+#else
+			m_computeProgram.compileShader("./shaders/computeraybox.cs", GLSLShader::COMPUTE, header);
+#endif
 			m_computeProgram.link();
 		}
 		catch (GLSLProgramException & e) {
@@ -313,10 +338,19 @@ namespace glfwFunc
 			m_computeProgram.setUniform("width", volume->m_fWidht);
 			m_computeProgram.setUniform("height", volume->m_fHeigth);
 			m_computeProgram.setUniform("depth", volume->m_fDepth);
+
+#ifndef NOT_RAY_BOX
+			m_computeProgram.setUniform("constantWidth", WINDOW_WIDTH);
+			m_computeProgram.setUniform("constantHeight", WINDOW_HEIGHT);
+			m_computeProgram.setUniform("constantAngle", fAngle);
+			m_computeProgram.setUniform("constantNCP", NCP);
+#endif
 		}
 
+#ifdef NOT_RAY_BOX
 		m_BackInter = new CCubeIntersection(false, WINDOW_WIDTH, WINDOW_HEIGHT);
 		m_FrontInter = new CCubeIntersection(true, WINDOW_WIDTH, WINDOW_HEIGHT);
+#endif
 		m_FinalImage = new CFinalImage(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 
@@ -327,8 +361,10 @@ namespace glfwFunc
 	/// Here all data must be destroyed + glfwTerminate
 	void destroy()
 	{
+#ifdef NOT_RAY_BOX
 		delete m_BackInter;
 		delete g_pTransferFunc;
+#endif
 		TextureManager::Inst()->UnloadAllTextures();
 		glfwTerminate();
 		glfwDestroyWindow(glfwWindow);
@@ -338,7 +374,7 @@ namespace glfwFunc
 int main(int argc, char** argv)
 {
 
-	if (argc == 5 || argc == 6) {
+	if (argc == 7 || argc == 8) {
 
 		//Copy volume file path
 		glfwFunc::volume_filepath = new char[strlen(argv[1]) + 1];
@@ -348,10 +384,13 @@ int main(int argc, char** argv)
 		int width = atoi(argv[2]), height = atoi(argv[3]), depth = atoi(argv[4]);
 		glfwFunc::vol_size = glm::ivec3(width, height, depth);
 
+		glfwFunc::working_group.x = atoi(argv[5]);
+		glfwFunc::working_group.y = atoi(argv[6]);
+
 		//Copy volume transfer function path
-		if (argc == 6){
-			glfwFunc::transfer_func_filepath = new char[strlen(argv[5]) + 1];
-			strncpy_s(glfwFunc::transfer_func_filepath, strlen(argv[5]) + 1, argv[5], strlen(argv[5]));
+		if (argc == 8){
+			glfwFunc::transfer_func_filepath = new char[strlen(argv[7]) + 1];
+			strncpy_s(glfwFunc::transfer_func_filepath, strlen(argv[7]) + 1, argv[7], strlen(argv[7]));
 		}
 
 	}

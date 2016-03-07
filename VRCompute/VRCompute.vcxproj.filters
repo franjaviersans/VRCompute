@@ -94,5 +94,8 @@
     <None Include="shaders\textureQuad.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\computeraybox.cs">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

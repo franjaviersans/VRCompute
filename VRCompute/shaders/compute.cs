@@ -1,21 +1,15 @@
-
-#version 450 core
-
-
 //Store into a texture
 layout(binding = 0, rgba8) uniform writeonly image2D destTex;
-layout(binding = 1, rgba16f) uniform readonly highp image2D lastHit;
-layout(binding = 2, rgba16f) uniform readonly highp image2D firstHit;
-layout(binding = 3, rgba8) uniform readonly image1D transferFunction;
-layout(binding = 4, r8) uniform readonly image3D volume;
+layout(binding = 1, rgba8) uniform readonly image1D transferFunction;
+layout(binding = 2, r8) uniform readonly image3D volume;
+layout(binding = 3, rgba16f) uniform readonly highp image2D lastHit;
+layout(binding = 4, rgba16f) uniform readonly highp image2D firstHit;
 
 uniform float h, width, height, depth;
 #define opacityThreshold 0.99
 
 
-// Declare what size is the group. In our case is 8x8, which gives
-// 64 group size.
-layout (local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
 
 
 // Declare main program function which is executed once

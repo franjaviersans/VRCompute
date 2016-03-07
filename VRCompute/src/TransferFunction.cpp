@@ -110,8 +110,10 @@ void TransferFunction::InitContext(GLFWwindow *window, int *windowsW, int *windo
 			input >> N;
 
 			for (int i = 0; i < N; ++i){
-				float  s, r, g, b, a;
-				input >> s >> r >> g >> b >> a;
+				int s;
+				float r, g, b, a;
+				input >> s;
+				input >> r >> g >> b >> a;
 				this->pointList[this->ptsCounter].x = int((s / 255.0f) * (MAXW - MINW) + MINW);
 				this->pointList[this->ptsCounter].y = int((1.0f - a) * (MAXH - MINH) + MINH);
 				this->colorList[this->ptsCounter] = glm::vec4(r, g, b, a);
