@@ -188,6 +188,43 @@ namespace glfwFunc
 		
 	}
 
+
+	///< Function to warup opencl
+	void WarmUP(unsigned int cycles){
+
+		RotationMat = glm::mat4_cast(glm::normalize(quater));
+
+		mModelViewMatrix = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, -2.0f)) *
+			RotationMat;
+
+		mMVP = mProjMatrix * mModelViewMatrix;
+
+		//Obtain Back hits
+#ifdef NOT_RAY_BOX
+		m_BackInter->Draw(mMVP);
+		//Obtain the front hits
+		m_FrontInter->Draw(mMVP);
+#endif
+		//Draw a Cube
+		m_computeProgram.use();
+		{
+
+#ifndef NOT_RAY_BOX
+			m_computeProgram.setUniform("c_invViewMatrix", glm::inverse(mModelViewMatrix));
+#endif
+			
+			for (int i = 0; i < cycles; ++i) {
+					//Do calculation with Compute Shader
+					glDispatchCompute((WINDOW_WIDTH + working_group.x) / working_group.x, (WINDOW_HEIGHT + working_group.y) / working_group.y, 1);
+
+					//Wait for memory writes
+					glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+			
+			}
+		}
+
+	}
+
 	///< The main rendering function.
 	void draw()
 	{
@@ -273,7 +310,6 @@ namespace glfwFunc
 		
 	}
 	
-
 
 	///
 	/// Init all data and variables.
@@ -412,9 +448,11 @@ int main(int argc, char** argv)
 	if(!glfwFunc::initialize()) exit(EXIT_FAILURE);
 	glfwFunc::resizeCB(glfwFunc::glfwWindow, glfwFunc::WINDOW_WIDTH, glfwFunc::WINDOW_HEIGHT);	//just the 1st time
 
+
+	//WarmUP!!!!
+	glfwFunc::WarmUP(20);
 	
-
-
+#ifndef NOT_DISPLAY
 	// main loop!
 	while (!glfwWindowShouldClose(glfwFunc::glfwWindow))
 	{
@@ -428,6 +466,11 @@ int main(int argc, char** argv)
 		glfwFunc::draw();
 		glfwPollEvents();	//or glfwWaitEvents()
 	}
+#else
+
+	glfwFunc::WarmUP(300);
+
+#endif
 
 	glfwFunc::destroy();
 	return EXIT_SUCCESS;
