@@ -1,7 +1,9 @@
 //Store into a texture
 layout(binding = 0, rgba8) uniform writeonly image2D destTex;
-layout(binding = 1, rgba8) uniform readonly image1D transferFunction;
-layout(binding = 2, r8) uniform readonly image3D volume;
+layout(binding = 1) uniform sampler1D transferFunction; 
+//layout(binding = 1, rgba8) uniform readonly image1D transferFunction;
+layout(binding = 2) uniform sampler3D volume; 
+//layout(binding = 2, r8) uniform readonly image3D volume;
 
 uniform float h, width, height, depth;
 uniform int constantWidth, constantHeight;
@@ -61,7 +63,7 @@ void main()
     ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
 
     // Calculate the global number of threads (size) for this
-    if(storePos.x < constantHeight && storePos.y < constantHeight)
+    if(storePos.x < constantWidth && storePos.y < constantHeight)
     {
         storePos.y = constantHeight - storePos.y;
 
@@ -90,8 +92,9 @@ void main()
            // if (tnear < constantNCP) tnear = constantNCP;     // clamp to near plane
 
 			vec3 first = vec3(eyeRay.o + eyeRay.d*tnear);
+            first = vec3(first.x + 0.5f, first.y + 0.5f , 1.0f - (first.z + 0.5f));
 			vec3 last = vec3(eyeRay.o + eyeRay.d*tfar);
-
+            last = vec3(last.x + 0.5f, last.y + 0.5f , 1.0f - (last.z + 0.5f));
 
 	        //Get direction of the ray
 	        vec3 direction = last - first;
@@ -106,12 +109,13 @@ void main()
 
 	        for(float t =0; t<=D; t += h){
 		
-                ivec3 volumePosition = ivec3((trans.x + 0.5f) * width, (trans.y + 0.5f) * height, (1.0f - (trans.z + 0.5f)) * depth);
-		        //Sample in the scalar field and the transfer function
-                //Need to do tri-linear interpolation here
-		        int scalar = int(imageLoad(volume, volumePosition).r * 255);
-                vec4 samp = imageLoad(transferFunction, scalar).rgba;
+                 // ivec3 volumePosition = ivec3((trans.x + 0.5f) * width, (trans.y + 0.5f) * height, (1.0f - (trans.z + 0.5f)) * depth);
 
+                //Sample in the scalar field and the transfer function	    
+                float scalar = texture(volume,trans).x;
+                //int scalar = int(imageLoad(volume, volumePosition).r * 255);
+                vec4 samp = texture(transferFunction, scalar).rgba;
+                //vec4 samp = imageLoad(transferFunction, scalar).rgba;
 		        //Calculating alpa
 		        samp.a = 1.0f - exp(-0.5 * samp.a);
 

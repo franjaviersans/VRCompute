@@ -182,11 +182,11 @@ namespace glfwFunc
 		{
 			//Bind the texture
 			glBindImageTexture(0, TextureManager::Inst()->GetID(TEXTURE_FINAL_IMAGE), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-			glBindImageTexture(1, TextureManager::Inst()->GetID(TEXTURE_TRANSFER_FUNC), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
-			glBindImageTexture(2, TextureManager::Inst()->GetID(TEXTURE_VOLUME), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
+			//glBindImageTexture(1, TextureManager::Inst()->GetID(TEXTURE_TRANSFER_FUNC), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+			//glBindImageTexture(2, TextureManager::Inst()->GetID(TEXTURE_VOLUME), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
 #ifdef NOT_RAY_BOX
-			glBindImageTexture(3, TextureManager::Inst()->GetID(TEXTURE_BACK_HIT), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
-			glBindImageTexture(4, TextureManager::Inst()->GetID(TEXTURE_FRONT_HIT), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
+			/*glBindImageTexture(3, TextureManager::Inst()->GetID(TEXTURE_BACK_HIT), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
+			glBindImageTexture(4, TextureManager::Inst()->GetID(TEXTURE_FRONT_HIT), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);*/
 #else
 			m_computeProgram.setUniform("constantWidth", WINDOW_WIDTH);
 			m_computeProgram.setUniform("constantHeight", WINDOW_HEIGHT);
@@ -225,9 +225,15 @@ namespace glfwFunc
 		m_computeProgram.use();
 		{
 
-#ifndef NOT_RAY_BOX
+			g_pTransferFunc->Use(GL_TEXTURE1);
+			volume->Use(GL_TEXTURE2);
+#ifdef NOT_RAY_BOX
+			m_BackInter->Use(GL_TEXTURE3);
+			m_FrontInter->Use(GL_TEXTURE4);
+#else
 			m_computeProgram.setUniform("c_invViewMatrix", glm::inverse(mModelViewMatrix));
 #endif
+			
 			
 			for (int i = 0; i < cycles; ++i) {
 					//Do calculation with Compute Shader
@@ -286,7 +292,13 @@ namespace glfwFunc
 		m_computeProgram.use();
 		{	
 
-#ifndef NOT_RAY_BOX
+
+#ifdef NOT_RAY_BOX
+			g_pTransferFunc->Use(GL_TEXTURE1);
+			volume->Use(GL_TEXTURE2);
+			m_BackInter->Use(GL_TEXTURE3);
+			m_FrontInter->Use(GL_TEXTURE4);
+#else
 			m_computeProgram.setUniform("c_invViewMatrix", glm::inverse(mModelViewMatrix));
 #endif
 
