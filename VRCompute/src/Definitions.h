@@ -2,10 +2,18 @@
 #define Definitions_H
 
 // decide if is ray/box intersection or by OpenGL images
-#define NOT_RAY_BOX
+//#define NOT_RAY_BOX
 
 // decide to display the results or not
 //#define NOT_DISPLAY
+
+//decide if the performance time is going to be used
+//#define MEASURE_TIME
+#ifdef MEASURE_TIME
+#include <Windows.h>
+#endif
+
+#define NUM_CYCLES 300
 
 #define BUFFER_OFFSET(i) (reinterpret_cast<void*>(i))
 #define WORLD_COORD_LOCATION	0

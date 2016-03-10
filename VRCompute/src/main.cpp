@@ -9,6 +9,7 @@
 #include "FinalImage.h"
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 using std::cout;
 using std::endl;
@@ -53,6 +54,14 @@ namespace glfwFunc
 #endif
 	CFinalImage *m_FinalImage;
 
+#ifdef MEASURE_TIME
+	std::ofstream time_file("Time.txt", std::ios::out);
+	// helper variable
+	LARGE_INTEGER temp;
+	int num;
+	LARGE_INTEGER start_time, end_time;
+	double freq, diff_time;
+#endif
 
 	Volume *volume = NULL;
 
@@ -190,7 +199,7 @@ namespace glfwFunc
 
 
 	///< Function to warup opencl
-	void WarmUP(unsigned int cycles){
+	void WarmUP(unsigned int cycles, bool measure = false){
 
 		RotationMat = glm::mat4_cast(glm::normalize(quater));
 
@@ -205,6 +214,13 @@ namespace glfwFunc
 		//Obtain the front hits
 		m_FrontInter->Draw(mMVP);
 #endif
+
+#ifdef MEASURE_TIME
+		if (measure){
+			QueryPerformanceCounter((LARGE_INTEGER *)&start_time);	//set start time
+		}
+#endif
+
 		//Draw a Cube
 		m_computeProgram.use();
 		{
@@ -223,6 +239,16 @@ namespace glfwFunc
 			}
 		}
 
+#ifdef MEASURE_TIME
+		if (measure){
+			QueryPerformanceCounter((LARGE_INTEGER *)&end_time); //end time
+			diff_time = (float)(((double)end_time.QuadPart - (double)start_time.QuadPart) / freq); // get total time
+			diff_time /= cycles; // get time per cycle
+			time_file << diff_time << endl;
+			time_file.close();
+		}
+#endif
+
 	}
 
 	///< The main rendering function.
@@ -234,6 +260,10 @@ namespace glfwFunc
 		{
 		  std::cout<<"INICIO "<< err<<std::endl;
 		}
+
+#ifdef MEASURE_TIME
+		QueryPerformanceCounter((LARGE_INTEGER *)&start_time);	//set start time
+#endif
 		
 		RotationMat = glm::mat4_cast(glm::normalize(quater));
 
@@ -300,6 +330,12 @@ namespace glfwFunc
 		g_pTransferFunc->Display();
 
 		glfwSwapBuffers(glfwWindow);
+
+#ifdef MEASURE_TIME
+		QueryPerformanceCounter((LARGE_INTEGER *)&end_time); //end time
+		diff_time += (float)(((double)end_time.QuadPart - (double)start_time.QuadPart) / freq); // get total time
+		++num;
+#endif
 
 		while((err = glGetError()) != GL_NO_ERROR)
 		{
@@ -389,6 +425,13 @@ namespace glfwFunc
 #endif
 		m_FinalImage = new CFinalImage(WINDOW_WIDTH, WINDOW_HEIGHT);
 
+#ifdef MEASURE_TIME
+		// get the tick frequency from the OS
+		QueryPerformanceFrequency((LARGE_INTEGER *)&temp);
+		freq = ((double)temp.QuadPart) / 1000.0; //convert to the time needed
+		num = 0;
+#endif
+
 
 		return true;
 	}
@@ -454,8 +497,13 @@ int main(int argc, char** argv)
 	
 #ifndef NOT_DISPLAY
 	// main loop!
+#ifndef MEASURE_TIME
 	while (!glfwWindowShouldClose(glfwFunc::glfwWindow))
 	{
+#else
+	while (!glfwWindowShouldClose(glfwFunc::glfwWindow) && glfwFunc::num <= NUM_CYCLES)
+	{
+#endif
 
 		if(glfwFunc::g_pTransferFunc->updateTexture) // Check if the color palette changed    
 		{
@@ -466,9 +514,15 @@ int main(int argc, char** argv)
 		glfwFunc::draw();
 		glfwPollEvents();	//or glfwWaitEvents()
 	}
+
+#ifdef MEASURE_TIME
+	glfwFunc::diff_time /= glfwFunc::num; // get time per cycle
+	glfwFunc::time_file << glfwFunc::diff_time << endl;
+	glfwFunc::time_file.close();
+#endif
 #else
 
-	glfwFunc::WarmUP(300);
+	glfwFunc::WarmUP(NUM_CYCLES, true);
 
 #endif
 
