@@ -7,6 +7,7 @@
 #include "FBOQuad.h"
 #include "Volume.h"
 #include "FinalImage.h"
+#include "Timer.h" 
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -60,10 +61,8 @@ namespace glfwFunc
 #ifdef MEASURE_TIME
 	std::ofstream time_file("Time.txt", std::ios::out);
 	// helper variable
-	LARGE_INTEGER temp;
+	TimerManager timer;
 	int num;
-	LARGE_INTEGER start_time, end_time;
-	double freq, diff_time;
 #endif
 
 	Volume *volume = NULL;
@@ -207,56 +206,63 @@ namespace glfwFunc
 	///< Function to warup opencl
 	void WarmUP(unsigned int cycles, bool measure = false){
 
-		RotationMat = glm::mat4_cast(glm::normalize(quater));
+#ifdef MEASURE_TIME
+		if (measure){
+			timer.Start();
+		}
+#endif
 
-		mModelViewMatrix = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, -2.0f)) *
+		
+		
+		for (int i = 0; i < cycles; ++i) {
+
+			RotationMat = glm::mat4_cast(glm::normalize(quater));
+
+			mModelViewMatrix = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, -2.0f)) *
 			RotationMat * scale;
 
-		mMVP = mProjMatrix * mModelViewMatrix;
+			mMVP = mProjMatrix * mModelViewMatrix;
 
-		//Obtain Back hits
+			//Obtain Back hits
 #ifdef NOT_RAY_BOX
-		m_BackInter->Draw(mMVP);
-		//Obtain the front hits
-		m_FrontInter->Draw(mMVP);
+			m_BackInter->Draw(mMVP);
+			//Obtain the front hits
+			m_FrontInter->Draw(mMVP);
 #endif
-
-#ifdef MEASURE_TIME
-		if (measure){
-			QueryPerformanceCounter((LARGE_INTEGER *)&start_time);	//set start time
-		}
-#endif
-
-		//Draw a Cube
-		m_computeProgram.use();
-		{
-
-			g_pTransferFunc->Use(GL_TEXTURE1);
-			volume->Use(GL_TEXTURE2);
+			//Draw a Cube
+			m_computeProgram.use();
+			{
+				g_pTransferFunc->Use(GL_TEXTURE1);
+				volume->Use(GL_TEXTURE2);
 #ifdef NOT_RAY_BOX
-			m_BackInter->Use(GL_TEXTURE3);
-			m_FrontInter->Use(GL_TEXTURE4);
+				m_BackInter->Use(GL_TEXTURE3);
+				m_FrontInter->Use(GL_TEXTURE4);
 #else
-			m_computeProgram.setUniform("c_invViewMatrix", glm::inverse(mModelViewMatrix));
+				m_computeProgram.setUniform("c_invViewMatrix", glm::inverse(mModelViewMatrix));
 #endif
-			
-			
-			for (int i = 0; i < cycles; ++i) {
-					//Do calculation with Compute Shader
-					glDispatchCompute((WINDOW_WIDTH + working_group.x) / working_group.x, (WINDOW_HEIGHT + working_group.y) / working_group.y, 1);
 
-					//Wait for memory writes
-					glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-			
+				//Do calculation with Compute Shader
+				glDispatchCompute((WINDOW_WIDTH + working_group.x) / working_group.x, (WINDOW_HEIGHT + working_group.y) / working_group.y, 1);
+
+				//Wait for memory writes
+				glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+				
+				GLsync syncObject = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+				int waitResult = glClientWaitSync(syncObject, GL_SYNC_FLUSH_COMMANDS_BIT, 1000*1000*1000);
+				if(waitResult == GL_WAIT_FAILED || waitResult == GL_TIMEOUT_EXPIRED){
+				}
+				glDeleteSync(syncObject);
+
+				
 			}
+
+			glFinish();
 		}
 
 #ifdef MEASURE_TIME
 		if (measure){
-			QueryPerformanceCounter((LARGE_INTEGER *)&end_time); //end time
-			diff_time = (float)(((double)end_time.QuadPart - (double)start_time.QuadPart) / freq); // get total time
-			diff_time /= cycles; // get time per cycle
-			time_file << diff_time << endl;
+			timer.Stop();
+			time_file << timer.GetAverageTime(cycles) << endl;
 			time_file.close();
 		}
 #endif
@@ -266,17 +272,7 @@ namespace glfwFunc
 	///< The main rendering function.
 	void draw()
 	{
-
-		GLenum err = GL_NO_ERROR;
-		while((err = glGetError()) != GL_NO_ERROR)
-		{
-		  std::cout<<"INICIO "<< err<<std::endl;
-		}
-
-#ifdef MEASURE_TIME
-		QueryPerformanceCounter((LARGE_INTEGER *)&start_time);	//set start time
-#endif
-		
+	
 		RotationMat = glm::mat4_cast(glm::normalize(quater));
 
 		mModelViewMatrix =  glm::translate(glm::mat4(), glm::vec3(0.0f,0.0f,-2.0f)) * 
@@ -314,6 +310,13 @@ namespace glfwFunc
 			//Wait for memory writes
 			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
+			GLsync syncObject = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+			int waitResult = glClientWaitSync(syncObject, GL_SYNC_FLUSH_COMMANDS_BIT, 1000*1000*1000);
+			if(waitResult == GL_WAIT_FAILED || waitResult == GL_TIMEOUT_EXPIRED){
+				cout<<" Error " <<endl;
+			}
+			glDeleteSync(syncObject);
+
 			//bind the default texture to the image unit, hopefully freeing ours for editing
 			/*glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 			glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA16F);
@@ -348,20 +351,6 @@ namespace glfwFunc
 		g_pTransferFunc->Display();
 
 		glfwSwapBuffers(glfwWindow);
-
-#ifdef MEASURE_TIME
-		QueryPerformanceCounter((LARGE_INTEGER *)&end_time); //end time
-		diff_time += (float)(((double)end_time.QuadPart - (double)start_time.QuadPart) / freq); // get total time
-		++num;
-#endif
-
-		while((err = glGetError()) != GL_NO_ERROR)
-		{
-		  std::cout<<"Swap "<< err<<std::endl;
-		  //exit(0);
-		}
-
-		
 	}
 	
 
@@ -445,8 +434,7 @@ namespace glfwFunc
 
 #ifdef MEASURE_TIME
 		// get the tick frequency from the OS
-		QueryPerformanceFrequency((LARGE_INTEGER *)&temp);
-		freq = ((double)temp.QuadPart) / 1000.0; //convert to the time needed
+		timer.Init();
 		num = 0;
 #endif
 
@@ -544,27 +532,36 @@ int main(int argc, char** argv)
 	
 #ifndef NOT_DISPLAY
 	// main loop!
-#ifndef MEASURE_TIME
+#ifndef MEASURE_TIME		
+	
 	while (!glfwWindowShouldClose(glfwFunc::glfwWindow))
 	{
 #else
-	while (!glfwWindowShouldClose(glfwFunc::glfwWindow) && glfwFunc::num <= NUM_CYCLES)
+	glfwFunc::timer.Start();
+	while (glfwFunc::num <= NUM_CYCLES)
 	{
 #endif
 
+#ifndef MEASURE_TIME
 		if(glfwFunc::g_pTransferFunc->updateTexture) // Check if the color palette changed    
 		{
 			glfwFunc::g_pTransferFunc->UpdatePallete();
 			glfwFunc::g_pTransferFunc->updateTexture = false;
-
 		}
+#endif
 		glfwFunc::draw();
+
+#ifndef MEASURE_TIME
 		glfwPollEvents();	//or glfwWaitEvents()
+#else
+		++glfwFunc::num;
+#endif
 	}
 
 #ifdef MEASURE_TIME
-	glfwFunc::diff_time /= glfwFunc::num; // get time per cycle
-	glfwFunc::time_file << glfwFunc::diff_time << endl;
+	
+	glfwFunc::timer.Stop();
+	glfwFunc::time_file << glfwFunc::timer.GetAverageTime(glfwFunc::num) << endl;
 	glfwFunc::time_file.close();
 #endif
 #else
