@@ -15,7 +15,7 @@ The program can run without any parameters and will load a volume of size 256x25
 $ program <volume_path> <width> <height> <depth> <bits> <scalex> <scaley> <scalez> <number_of_working_items_X> <number_of_working_items_Y> [<transfer_func_path>]
 ```
 
-where **<volume_path>** is the path of the file containing the volume; **<width>, <height>,** and **<depth>** the dimensions of the volume; **<bits>** the number of bits per scalar (only 8 and 16 bits supported); **<scalex>**, **<scaley>**, and **<scalez>** the scale of the volume in every direction; **<number_of_working_items_X>**, and **<number_of_working_items_Y>** the number of working items per working group, and **<transfer_function_path>** is the path of the file containing the initial set up of the transfer function. The last parameter is optional, in which case, the identity function is loaded.
+where `<volume_path>` is the path of the file containing the volume; `<width>`, `<height>`, and `<depth>` the dimensions of the volume; `<bits>` the number of bits per scalar (only 8 and 16 bits supported); `<scalex>`, `<scaley>`, and `<scalez>` the scale of the volume in every direction; `<number_of_working_items_X>`, and `<number_of_working_items_Y>` the number of working items per working group, and `<transfer_function_path>` is the path of the file containing the initial set up of the transfer function. The last parameter is optional, in which case, the identity function is loaded.
 
 ## Set up of the Transfer Function File#
 
