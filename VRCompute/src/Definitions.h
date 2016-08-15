@@ -1,6 +1,20 @@
 #ifndef Definitions_H
 #define Definitions_H
 
+// decide if is ray/box intersection or by OpenGL images
+//#define NOT_RAY_BOX
+
+// decide to display the results or not
+//#define NOT_DISPLAY
+
+//decide if the performance time is going to be used
+//#define MEASURE_TIME
+#ifdef MEASURE_TIME
+#include <Windows.h>
+#endif
+
+#define NUM_CYCLES 300
+
 #define BUFFER_OFFSET(i) (reinterpret_cast<void*>(i))
 #define WORLD_COORD_LOCATION	0
 #define COLOR_COORD_LOCATION	1
@@ -21,7 +35,6 @@
 #pragma comment (lib,"./lib/glfw3dll.lib")	
 #pragma comment (lib,"./lib/glew32.lib")
 #pragma comment (lib, "opengl32.lib")
-#pragma comment (lib,"./lib/AntTweakBar.lib")
 #pragma comment (lib,"./lib/FreeImage.lib")
 
 
@@ -29,7 +42,6 @@
 #include "../include/GL/glew.h"
 #define GLFW_DLL
 #include "../include/GLFW/glfw3.h"
-#include "../include/AntTweakBar/AntTweakBar.h"
 #include "../include/glm/glm.hpp"
 #include "../include/glm/gtc/matrix_transform.hpp"
 #include "../include/glm/gtc/type_ptr.hpp"

@@ -42,6 +42,9 @@
     <ClCompile Include="src\FinalImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\CubeIntersection.h">
@@ -71,6 +74,9 @@
     <ClInclude Include="src\FinalImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\hit.frag">
@@ -92,6 +98,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="shaders\textureQuad.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\computeraybox.cs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
