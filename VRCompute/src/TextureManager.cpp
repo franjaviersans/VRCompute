@@ -8,6 +8,8 @@
 
 #include "TextureManager.h"
 #include <iostream>
+#define STB_IMAGE_IMPLEMENTATION
+#include "../include/stb_image.h""
 
 TextureManager* TextureManager::m_inst(0);
 
@@ -42,46 +44,30 @@ TextureManager::~TextureManager()
 	m_inst = 0;
 }
 
-bool TextureManager::LoadTexture2D(const char* filename, const unsigned int texID, GLenum image_format, GLint internal_format, GLint level, GLint border)
+bool TextureManager::LoadTexture2D(const char* filename, const unsigned int texID,
+	GLenum image_format, GLint internal_format,
+	GLint level, GLint border)
 {
-	//image format
-	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
-	//pointer to the image, once loaded
-	FIBITMAP *dib(0);
-	//pointer to the image data
-	BYTE* bits(0);
+
+
 	//image width and height
-	unsigned int width(0), height(0);
+	int width(0), height(0);
 	//OpenGL's image ID to map to
 	GLuint gl_texID;
-	
-	//check the file signature and deduce its format
-	fif = FreeImage_GetFileType(filename, 0);
-	//if still unknown, try to guess the file format from the file extension
-	if(fif == FIF_UNKNOWN) 
-		fif = FreeImage_GetFIFFromFilename(filename);
-	//if still unkown, return failure
-	if(fif == FIF_UNKNOWN)
-		return false;
 
-	//check that the plugin has reading capabilities and load the file
-	if(FreeImage_FIFSupportsReading(fif))
-		dib = FreeImage_Load(fif, filename);
-	//if the image failed to load, return failure
-	if(!dib)
-		return false;
+	int comp(0);
 
-	//retrieve the image data
-	bits = FreeImage_GetBits(dib);
-	//get the image width and height
-	width = FreeImage_GetWidth(dib);
-	height = FreeImage_GetHeight(dib);
+	stbi_set_flip_vertically_on_load(true);
+
+	//pointer to the image data
+	unsigned char* bits = stbi_load(filename, &width, &height, &comp, 0);
+
 	//if this somehow one of these failed (they shouldn't), return failure
-	if((bits == 0) || (width == 0) || (height == 0))
+	if ((bits == 0) || (width == 0) || (height == 0))
 		return false;
-	
+
 	//if this texture ID is in use, unload the current texture
-	if(m_texID.find(texID) != m_texID.end())
+	if (m_texID.find(texID) != m_texID.end())
 		glDeleteTextures(1, &(m_texID[texID].id));
 
 	//generate an OpenGL texture ID for this texture
@@ -97,7 +83,7 @@ bool TextureManager::LoadTexture2D(const char* filename, const unsigned int texI
 
 
 	//Free FreeImage's copy of the data
-	FreeImage_Unload(dib);
+	stbi_image_free(bits);
 
 	//return success
 	return true;
@@ -245,9 +231,9 @@ void TextureManager::CreateTexture3D( const unsigned int texID, GLuint width, GL
 	//store the texture data for OpenGL use
 
 	glTexImage3D(GL_TEXTURE_3D, 0, internalFormat, width, Height, Depth, 0, pixelFormat, pixelType, data);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MAG_FILTER,magFilter);
 	glTexParameteri(GL_TEXTURE_3D,GL_TEXTURE_MIN_FILTER,minFilter);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);

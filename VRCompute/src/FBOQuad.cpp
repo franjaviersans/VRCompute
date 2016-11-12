@@ -27,7 +27,7 @@ FBOQuad::FBOQuad()
 						}; 
 
 
-	GLuint Indices[] = {0,1,2,3}; 
+	GLuint Indices[] = { 0, 1, 2, 0, 2, 3 };
 
 
 
@@ -44,7 +44,7 @@ FBOQuad::FBOQuad()
 
 		//bind buffer for positions and copy data into buffer
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_iVBOIndex);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 4 * sizeof(GL_UNSIGNED_INT), Indices, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GL_UNSIGNED_INT), Indices, GL_STATIC_DRAW);
 
 
 	//Generate the VAO
@@ -105,7 +105,7 @@ void FBOQuad::Draw()
 	//Bind Buffers
 	glBindVertexArray(m_iVAO );
 
-		glDrawElements(GL_QUADS, 4, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	//Unbid Buffer
 	glBindVertexArray(0);
@@ -128,7 +128,7 @@ void FBOQuad::StartUp()
 */
 void FBOQuad::OnlyDraw()
 {
-	glDrawElements(GL_QUADS, 4, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 

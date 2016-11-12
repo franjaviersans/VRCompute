@@ -63,13 +63,13 @@ void FBOCube::Init(){
 						-0.5f,0.5f,-0.5f,		0.0f,1.0f,1.0f,	//v7
 						}; 
 
-	GLuint Indices[] = {0,1,2,3,	//front
-						4,7,6,5,	//back
-						4,0,3,7,	//left
-						1,5,6,2,	//right
-						3,2,6,7,	//top
-						4,5,1,0,	//bottom
-						}; 
+	GLuint Indices[] = { 0, 1, 2, 0, 2, 3,	//front
+		4, 7, 6, 4, 6, 5,	//back
+		4, 0, 3, 4, 3, 7,	//left
+		1, 5, 6, 1, 6, 2,	//right
+		3, 2, 6, 3, 6, 7,	//top
+		4, 5, 1, 4, 1, 0,	//bottom
+	};
 
 	glGenBuffers(1, &m_iVBO);
 	glGenBuffers(1, &m_iVBOIndex);
@@ -84,7 +84,7 @@ void FBOCube::Init(){
 		glBufferData(GL_ARRAY_BUFFER, 48 * sizeof(GL_FLOAT), Vertex, GL_STATIC_DRAW);
 
 		//Set the index array
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 24 * sizeof(GL_UNSIGNED_INT), Indices, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(GL_UNSIGNED_INT), Indices, GL_STATIC_DRAW);
 
 
 
@@ -118,7 +118,7 @@ void FBOCube::Draw()
 {
 	
 	glBindVertexArray(m_iVAO);
-		glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 
 }
@@ -137,7 +137,7 @@ void FBOCube::Setup()
 */
 void FBOCube::OnlyDraw()
 {
-	glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
 
 /** 
