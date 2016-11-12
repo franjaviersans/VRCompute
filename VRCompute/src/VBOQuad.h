@@ -4,8 +4,8 @@
 //
 // Complete history on bottom of file
 
-#ifndef FBOQuad_H
-#define FBOQuad_H
+#ifndef VBOQuad_H
+#define VBOQuad_H
 
 //Includes
 #include "Definitions.h"
@@ -19,13 +19,13 @@
 *					  |      |
 *          (-0.5,-0.5)*------*(0.5,-0.5)
 */
-class FBOQuad
+class VBOQuad
 {
 	//Functions
 
 	public:
 		///Default destructor
-		~FBOQuad();
+		~VBOQuad();
 
 		///Method to Draw the Quad
 		void Draw();
@@ -40,17 +40,16 @@ class FBOQuad
 		void Stop();
 
 		///Creates an instance of the model
-		static FBOQuad* Instance() ;
+		static VBOQuad & Instance() ;
 
 	private:
 		///Default constructor
-		FBOQuad();
+		VBOQuad();
 
 
 	//Variables
 
 	private:
-		static FBOQuad * m_quad;
 		GLuint m_iVBO;
 		GLuint m_iVBOIndex;
 		GLuint m_iVAO;

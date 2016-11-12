@@ -6,14 +6,11 @@
 
 #define FILE_REVISION "$Revision: $"
 
-#include "FBOCube.h"
-
-// Global static pointer used to ensure a single instance of the class.
-FBOCube * FBOCube::m_cube = NULL;
+#include "VBOCube.h"
 
 /**
-* Class FBOCube.
-* Creates a Cube using FBO with the corresponding texture coordinates
+* Class VBOCube.
+* Creates a Cube using VBO with the corresponding texture coordinates
 *
 *					(0,1,1) v7		(1,1,1) v6
 *					 *-------------* 
@@ -28,7 +25,7 @@ FBOCube * FBOCube::m_cube = NULL;
 /**
 * Default constructor
 */
-FBOCube::FBOCube()
+VBOCube::VBOCube()
 {
 
 	Init();
@@ -38,7 +35,7 @@ FBOCube::FBOCube()
 /**
 * Default destructor
 */
-FBOCube::~FBOCube()
+VBOCube::~VBOCube()
 {
 
 	glDeleteBuffers(1, &m_iVBO);
@@ -49,7 +46,7 @@ FBOCube::~FBOCube()
 /**
 * Method to Init cube
 */
-void FBOCube::Init(){
+void VBOCube::Init(){
 
 
 	GLfloat Vertex[] = {//World					//Color
@@ -63,13 +60,13 @@ void FBOCube::Init(){
 						-0.5f,0.5f,-0.5f,		0.0f,1.0f,1.0f,	//v7
 						}; 
 
-	GLuint Indices[] = { 0, 1, 2, 0, 2, 3,	//front
-		4, 7, 6, 4, 6, 5,	//back
-		4, 0, 3, 4, 3, 7,	//left
-		1, 5, 6, 1, 6, 2,	//right
-		3, 2, 6, 3, 6, 7,	//top
-		4, 5, 1, 4, 1, 0,	//bottom
-	};
+	GLuint Indices[] = {0,1,2,0,2,3,	//front
+						4,7,6,4,6,5,	//back
+						4,0,3,4,3,7,	//left
+						1,5,6,1,6,2,	//right
+						3,2,6,3,6,7,	//top
+						4,5,1,4,1,0,	//bottom
+						}; 
 
 	glGenBuffers(1, &m_iVBO);
 	glGenBuffers(1, &m_iVBOIndex);
@@ -114,7 +111,7 @@ void FBOCube::Init(){
 /**
 * Method to Draw the Cube
 */
-void FBOCube::Draw()
+void VBOCube::Draw()
 {
 	
 	glBindVertexArray(m_iVAO);
@@ -127,7 +124,7 @@ void FBOCube::Draw()
 /**
 * Method to Setup rendering cube
 */
-void FBOCube::Setup()
+void VBOCube::Setup()
 {
 	glBindVertexArray(m_iVAO);
 }
@@ -135,7 +132,7 @@ void FBOCube::Setup()
 /**
 * Method to only draw cube
 */
-void FBOCube::OnlyDraw()
+void VBOCube::OnlyDraw()
 {
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
@@ -143,7 +140,7 @@ void FBOCube::OnlyDraw()
 /** 
 * Method to Stop rendering cube
 */
-void FBOCube::Stop()
+void VBOCube::Stop()
 {
 	glBindVertexArray(0);
 }
@@ -153,10 +150,10 @@ void FBOCube::Stop()
 *
 * @return an instance of this class
 */
-FBOCube * FBOCube::Instance() 
+VBOCube & VBOCube::Instance() 
 {
-	if (!m_cube)   // Only allow one instance of class to be generated.
-		 m_cube = new FBOCube;
+	static VBOCube m_cube;	// Guaranteed to be destroyed.
+							// Instantiated on first use.
  
    return m_cube;
 

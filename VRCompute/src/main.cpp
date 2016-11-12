@@ -3,8 +3,8 @@
 #include "TransferFunction.h"
 #include "TextureManager.h"
 #include "CubeIntersection.h"
-#include "FBOCube.h"
-#include "FBOQuad.h"
+#include "VBOCube.h"
+#include "VBOQuad.h"
 #include "Volume.h"
 #include "FinalImage.h"
 #include "Timer.h" 
@@ -96,7 +96,11 @@ namespace glfwFunc
 					glfwSetWindowShouldClose(window, GL_TRUE);
 					break;
 				case GLFW_KEY_SPACE:
-					g_pTransferFunc->isVisible = !g_pTransferFunc->isVisible;
+				{
+					static bool visible = false;
+					visible = !visible;
+					g_pTransferFunc->SetVisible(visible);
+				}
 					break;
 				case GLFW_KEY_S:
 					g_pTransferFunc->SaveToFile("TransferFunction.txt");
@@ -186,7 +190,7 @@ namespace glfwFunc
 		m_computeProgram.use();
 		{
 			//Bind the texture
-			glBindImageTexture(0, TextureManager::Inst()->GetID(TEXTURE_FINAL_IMAGE), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+			glBindImageTexture(0, TextureManager::Inst().GetID(TEXTURE_FINAL_IMAGE), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 			//glBindImageTexture(1, TextureManager::Inst()->GetID(TEXTURE_TRANSFER_FUNC), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
 			//glBindImageTexture(2, TextureManager::Inst()->GetID(TEXTURE_VOLUME), 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8);
 #ifdef NOT_RAY_BOX
@@ -381,7 +385,7 @@ namespace glfwFunc
 
 		//Init the transfer function
 		g_pTransferFunc = new TransferFunction();
-		g_pTransferFunc->InitContext(glfwWindow, &WINDOW_WIDTH, &WINDOW_HEIGHT, transfer_func_filepath, - 1, -1);
+		g_pTransferFunc->InitContext(&WINDOW_WIDTH, &WINDOW_HEIGHT, transfer_func_filepath, - 1, -1);
 
 		// send window size events to AntTweakBar
 		glfwSetWindowSizeCallback(glfwWindow, resizeCB);
@@ -451,7 +455,7 @@ namespace glfwFunc
 		delete m_BackInter;
 		delete g_pTransferFunc;
 #endif
-		TextureManager::Inst()->UnloadAllTextures();
+		TextureManager::Inst().UnloadAllTextures();
 		glfwTerminate();
 		glfwDestroyWindow(glfwWindow);
 	}
@@ -544,10 +548,10 @@ int main(int argc, char** argv)
 #endif
 
 #ifndef MEASURE_TIME
-		if(glfwFunc::g_pTransferFunc->updateTexture) // Check if the color palette changed    
+		if (glfwFunc::g_pTransferFunc->NeedUpdate()) // Check if the color palette changed    
 		{
 			glfwFunc::g_pTransferFunc->UpdatePallete();
-			glfwFunc::g_pTransferFunc->updateTexture = false;
+			glfwFunc::g_pTransferFunc->SetUpdate(false);
 		}
 #endif
 		glfwFunc::draw();

@@ -9,7 +9,7 @@
 
 //Includes
 #include "Definitions.h"
-#include "FBOCube.h"
+#include "VBOCube.h"
 #include "GLSLProgram.h"
 
 

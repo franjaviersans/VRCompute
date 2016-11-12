@@ -6,17 +6,14 @@
 
 #define FILE_REVISION "$Revision: $"
 
-#include "FBOQuad.h"
+#include "VBOQuad.h"
 #include <stdlib.h>
 
-
-// Global static pointer used to ensure a single instance of the class.
-FBOQuad * FBOQuad::m_quad = NULL;
 
 /**
 * Default constructor
 */
-FBOQuad::FBOQuad()
+VBOQuad::VBOQuad()
 {
 
 	GLfloat Vertex[] = {//Word          Texture
@@ -27,7 +24,7 @@ FBOQuad::FBOQuad()
 						}; 
 
 
-	GLuint Indices[] = { 0, 1, 2, 0, 2, 3 };
+	GLuint Indices[] = {0,1,2,0,2,3}; 
 
 
 
@@ -75,10 +72,11 @@ FBOQuad::FBOQuad()
 *
 * @return an instance of this class
 */
-FBOQuad * FBOQuad::Instance() 
+VBOQuad & VBOQuad::Instance()
 {
-	if (!m_quad)   // Only allow one instance of class to be generated.
-		 m_quad = new FBOQuad;
+
+	static VBOQuad m_quad;	 // Guaranteed to be destroyed.
+							// Instantiated on first use.
  
    return m_quad;
 
@@ -88,7 +86,7 @@ FBOQuad * FBOQuad::Instance()
 /**
 * Default destructor
 */
-FBOQuad::~FBOQuad()
+VBOQuad::~VBOQuad()
 {
 
 	glDeleteBuffers(1, &m_iVBO);
@@ -99,7 +97,7 @@ FBOQuad::~FBOQuad()
 /**
 * Method to Draw the Quad
 */
-void FBOQuad::Draw()
+void VBOQuad::Draw()
 {
 
 	//Bind Buffers
@@ -116,7 +114,7 @@ void FBOQuad::Draw()
 /**
 * Method start up Quad rendering
 */
-void FBOQuad::StartUp()
+void VBOQuad::StartUp()
 {
 	//Bind Buffers
 	glBindVertexArray(m_iVAO );
@@ -126,7 +124,7 @@ void FBOQuad::StartUp()
 /**
 * Method to only Draw the Quad
 */
-void FBOQuad::OnlyDraw()
+void VBOQuad::OnlyDraw()
 {
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
@@ -135,7 +133,7 @@ void FBOQuad::OnlyDraw()
 /**
 * Method to stop Quad rendering
 */
-void FBOQuad::Stop(){
+void VBOQuad::Stop(){
 	//Unbid Buffer
 	glBindVertexArray(0);
 }

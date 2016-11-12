@@ -57,13 +57,13 @@ void CCubeIntersection::SetResolution(GLuint ResW, GLuint ResH)
 	m_uiHeight = ResH;
 
 	//If it exists, unload
-	TextureManager::Inst()->UnloadTexture((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT);
+	TextureManager::Inst().UnloadTexture((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT);
 
 	//Create texture!!
 	glActiveTexture(GL_TEXTURE0);
 
 	//Create new empty textures
-	TextureManager::Inst()->CreateTexture2D((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT, m_uiWidth, m_uiHeight, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_NEAREST, GL_NEAREST);
+	TextureManager::Inst().CreateTexture2D((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT, m_uiWidth, m_uiHeight, GL_RGBA16F, GL_RGBA, GL_FLOAT, GL_NEAREST, GL_NEAREST);
 
 
 	//Generate Render Buffer
@@ -74,7 +74,7 @@ void CCubeIntersection::SetResolution(GLuint ResW, GLuint ResH)
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, m_iFrameBuffer);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TextureManager::Inst()->GetID((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TextureManager::Inst().GetID((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT), 0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	// The depth buffer
@@ -119,7 +119,7 @@ void CCubeIntersection::Draw(glm::mat4 &m_mMVP)
 	m_program.use();
 	{
 		m_program.setUniform("mMVP", m_mMVP);
-		FBOCube::Instance()->Draw();
+		VBOCube::Instance().Draw();
 	}
 
 
@@ -136,7 +136,7 @@ void CCubeIntersection::Draw(glm::mat4 &m_mMVP)
 void CCubeIntersection::Use(GLenum activeTexture)
 {
 	glActiveTexture(activeTexture);
-	TextureManager::Inst()->BindTexture((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT);
+	TextureManager::Inst().BindTexture((m_bFront) ? TEXTURE_FRONT_HIT : TEXTURE_BACK_HIT);
 }
 
 

@@ -53,13 +53,13 @@ void CFinalImage::SetResolution(GLuint ResW, GLuint ResH)
 	m_uiHeight = ResH;
 
 	//If it exists, unload
-	TextureManager::Inst()->UnloadTexture(TEXTURE_FINAL_IMAGE);
+	TextureManager::Inst().UnloadTexture(TEXTURE_FINAL_IMAGE);
 
 	//Create texture!!
 	glActiveTexture(GL_TEXTURE0);
 
 	//Create new empty textures
-	TextureManager::Inst()->CreateTexture2D(TEXTURE_FINAL_IMAGE, m_uiWidth, m_uiHeight, GL_RGBA8, GL_RGBA, GL_FLOAT, GL_LINEAR, GL_LINEAR);
+	TextureManager::Inst().CreateTexture2D(TEXTURE_FINAL_IMAGE, m_uiWidth, m_uiHeight, GL_RGBA8, GL_RGBA, GL_FLOAT, GL_LINEAR, GL_LINEAR);
 
 	m_program.use();
 	{
@@ -80,7 +80,7 @@ void CFinalImage::Draw()
 	m_program.use();
 	{
 		Use(GL_TEXTURE0);
-		FBOCube::Instance()->Draw();
+		VBOCube::Instance().Draw();
 	}
 }
 
@@ -91,7 +91,7 @@ void CFinalImage::Draw()
 void CFinalImage::Use(GLenum activeTexture)
 {
 	glActiveTexture(activeTexture);
-	TextureManager::Inst()->BindTexture(TEXTURE_FINAL_IMAGE);
+	TextureManager::Inst().BindTexture(TEXTURE_FINAL_IMAGE);
 }
 
 
