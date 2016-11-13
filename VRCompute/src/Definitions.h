@@ -3,7 +3,7 @@
 
 
 //decide if the volume is lit
-#define LIGHTING
+//#define LIGHTING
 
 // decide if is ray/box intersection or by OpenGL images
 //#define NOT_RAY_BOX

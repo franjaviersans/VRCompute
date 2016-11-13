@@ -106,5 +106,11 @@
     <None Include="shaders\computeraybox.cs">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\computeLight.cs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\computerayboxLight.cs">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

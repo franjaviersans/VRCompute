@@ -170,7 +170,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\compute.cs" />
+    <None Include="shaders\computeLight.cs" />
     <None Include="shaders\computeraybox.cs" />
+    <None Include="shaders\computerayboxLight.cs" />
     <None Include="shaders\hit.frag" />
     <None Include="shaders\hit.vert" />
     <None Include="shaders\textureQuad.frag" />

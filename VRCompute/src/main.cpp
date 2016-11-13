@@ -31,14 +31,9 @@ namespace glfwFunc
 	//Declare the transfer function
 	TransferFunction *g_pTransferFunc;
 
-
-	char * volume_filepath = "../.././Raw/nucleon_8_41_41_41.raw";
-	char * transfer_func_filepath = NULL;
-	glm::ivec3 vol_size = glm::ivec3(41, 41, 41);
-	/*
 	char * volume_filepath = "./Raw/volume.raw";
 	char * transfer_func_filepath = NULL;
-	glm::ivec3 vol_size = glm::ivec3(256, 256, 256);*/
+	glm::ivec3 vol_size = glm::ivec3(256, 256, 256);
 	glm::ivec2 working_group = glm::ivec2(8, 8);
 	glm::mat4 scale = glm::mat4();
 	bool bits8 = true;
@@ -252,7 +247,6 @@ namespace glfwFunc
 
 				//send lightihng information to the kernel
 #ifdef LIGHTING
-				m_computeProgram.setUniform("light", 1);
 				vec3 lightDir = vec3(inverse(mModelViewMatrix) * vec4(0.0, 0.0, -1.0f, 0.0f));
 				lightDir = normalize(lightDir);
 				m_computeProgram.setUniform("lightDir", vec3(lightDir));
@@ -316,7 +310,6 @@ namespace glfwFunc
 
 			//send lightihng information to the kernel
 #ifdef LIGHTING
-			m_computeProgram.setUniform("light", 1);
 			vec3 lightDir = vec3(inverse(mModelViewMatrix) * vec4(0.0, 0.0, -1.0f,0.0f));
 			lightDir = normalize(lightDir);
 			m_computeProgram.setUniform("lightDir", vec3(lightDir));
@@ -429,9 +422,17 @@ namespace glfwFunc
 			oss << "#version 450 core \n layout(local_size_x = " << working_group.x << ", local_size_y = " << working_group.y<<", local_size_z = 1) in; \n";
 			std::string header = oss.str();
 #ifdef NOT_RAY_BOX
+	#ifdef LIGHTING
+			m_computeProgram.compileShader("./shaders/computeLight.cs", GLSLShader::COMPUTE, header);
+	#else
 			m_computeProgram.compileShader("./shaders/compute.cs", GLSLShader::COMPUTE, header);
+	#endif
 #else
+	#ifdef LIGHTING
+			m_computeProgram.compileShader("./shaders/computerayboxLight.cs", GLSLShader::COMPUTE, header);
+	#else
 			m_computeProgram.compileShader("./shaders/computeraybox.cs", GLSLShader::COMPUTE, header);
+	#endif
 #endif
 			m_computeProgram.link();
 		}
@@ -492,6 +493,12 @@ int main(int argc, char** argv)
 	cout << "Using image intersection" << endl;
 #else
 	cout << "Using ray box intersection" << endl;
+#endif
+
+#ifdef LIGHTING
+	cout << "Using lighting" << endl;
+#else
+	cout << "Without lighting" << endl;
 #endif
 
 #ifdef NOT_DISPLAY
