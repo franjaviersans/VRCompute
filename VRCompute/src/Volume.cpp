@@ -90,6 +90,7 @@ void Volume::Load(string filename, GLuint width, GLuint height, GLuint depth, GL
 	m_fHeigth = (float)height;
 	m_fDepth = (float)depth;
 	m_fDiagonal = sqrtf(float(width * width + height * height + depth * depth));
+	voxelSize = glm::vec3(1.0f / width, 1.0f / height, 1.0f / depth);
 
 	GLenum err = GL_NO_ERROR;
 	while ((err = glGetError()) != GL_NO_ERROR)
@@ -103,6 +104,12 @@ void Volume::Use(GLenum activeTexture)
 	glActiveTexture(activeTexture);
 	TextureManager::Inst().BindTexture(TEXTURE_VOLUME);
 }
+
+
+glm::vec3 Volume::getVoxelSize(){
+	return voxelSize;
+}
+
 
 
 #undef FILE_REVISION

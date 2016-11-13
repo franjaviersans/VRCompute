@@ -31,9 +31,14 @@ namespace glfwFunc
 	//Declare the transfer function
 	TransferFunction *g_pTransferFunc;
 
+
+	char * volume_filepath = "../.././Raw/nucleon_8_41_41_41.raw";
+	char * transfer_func_filepath = NULL;
+	glm::ivec3 vol_size = glm::ivec3(41, 41, 41);
+	/*
 	char * volume_filepath = "./Raw/volume.raw";
 	char * transfer_func_filepath = NULL;
-	glm::ivec3 vol_size = glm::ivec3(256, 256, 256);
+	glm::ivec3 vol_size = glm::ivec3(256, 256, 256);*/
 	glm::ivec2 working_group = glm::ivec2(8, 8);
 	glm::mat4 scale = glm::mat4();
 	bool bits8 = true;
@@ -245,6 +250,17 @@ namespace glfwFunc
 				m_computeProgram.setUniform("c_invViewMatrix", glm::inverse(mModelViewMatrix));
 #endif
 
+				//send lightihng information to the kernel
+#ifdef LIGHTING
+				m_computeProgram.setUniform("light", 1);
+				vec3 lightDir = vec3(inverse(mModelViewMatrix) * vec4(0.0, 0.0, -1.0f, 0.0f));
+				lightDir = normalize(lightDir);
+				m_computeProgram.setUniform("lightDir", vec3(lightDir));
+				m_computeProgram.setUniform("voxelJump", volume->getVoxelSize());
+#endif
+
+
+
 				//Do calculation with Compute Shader
 				glDispatchCompute((WINDOW_WIDTH + working_group.x) / working_group.x, (WINDOW_HEIGHT + working_group.y) / working_group.y, 1);
 
@@ -298,6 +314,14 @@ namespace glfwFunc
 		m_computeProgram.use();
 		{	
 
+			//send lightihng information to the kernel
+#ifdef LIGHTING
+			m_computeProgram.setUniform("light", 1);
+			vec3 lightDir = vec3(inverse(mModelViewMatrix) * vec4(0.0, 0.0, -1.0f,0.0f));
+			lightDir = normalize(lightDir);
+			m_computeProgram.setUniform("lightDir", vec3(lightDir));
+			m_computeProgram.setUniform("voxelJump", volume->getVoxelSize());
+#endif
 
 #ifdef NOT_RAY_BOX
 			g_pTransferFunc->Use(GL_TEXTURE1);
